@@ -244,11 +244,11 @@ x86_64处理器架构：支持VT-x
 
 #####SRIOV测试
 
-1）主机BIOS开启SR-IOV
+    1）主机BIOS开启SR-IOV
 
     举例：超聚变：Advanced>Peripheral Configuration>SR-IOV Setup Settings>PCIe SR-IOV:Enabled  
 
-2）系统设置：  
+    2）系统设置：  
     #vi /etc/default/grub  
     在GRUB_CMDLINE_LINUX最后追加“intel_iommu=on iommu=pt iommu.passthrough=1”参数。  
     刷新 grub.cfg 文件：  
@@ -270,15 +270,15 @@ x86_64处理器架构：支持VT-x
     [    0.215697] DMAR-IR: IOAPIC id 8 under DRHD base  0xda3fc000 IOMMU 7  
     [    0.215699] DMAR-IR: IOAPIC id 9 under DRHD base  0xda3fc000 IOMMU 7  
 
-3）设置网卡VF  
+    3）设置网卡VF  
     #ls -l /sys/class/net/ | grep -v virtual  
     #cat /sys/class/net/[ethx]/device/sriov_totalvfs  
     #echo [num] > /sys/class/net/[ethx]/device/sriov_numvfs  
     #lspci | grep "Virtual Function"  
     37:00.2 Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5 Virtual Function]
 
-4）设置虚拟机xml
-将PCI号修改为系统查询(lspci | grep "Virtual Function")回显;tag id需要此网卡对应的交换机端口放通此vlan。
+    4）设置虚拟机xml
+    将PCI号修改为系统查询(lspci | grep "Virtual Function")回显;tag id需要此网卡对应的交换机端口放通此vlan。
 
     <interface type='hostdev' managed='yes'>
     <source>
@@ -289,7 +289,7 @@ x86_64处理器架构：支持VT-x
     </vlan>
     </interface>
 
-由于要拉起两个虚拟机互ping，将镜像复制到新目录，修改镜像路径：
+    由于要拉起两个虚拟机互ping，将镜像复制到新目录，修改镜像路径：
 
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2' iothread='1'/>
@@ -299,19 +299,19 @@ x86_64处理器架构：支持VT-x
       <address type='pci' domain='0x0000' bus='0x00' slot='0x08' function='0x0'/>
     </disk>
 
-5）拉起虚拟机测试
+    5）拉起虚拟机测试
 
     # virsh create qemu-test1-PING.xml  
     # virsh create qemu-test2-PING.xml  
-登录虚拟机控制台配置IP（根据交换机vlanif配置合法IP和网关）：  
+    登录虚拟机控制台配置IP（根据交换机vlanif配置合法IP和网关）：  
     # virsh console test*  
     # [root@localhost ~]# ifconfig ens7 x.x.x.x/x  
     # [root@localhost ~]# route add default gw x.x.x.x  
-跨网卡互ping测试：  
+    跨网卡互ping测试：  
     # [root@localhost ~]#ping x.x.x.x  
-巨型帧互ping测试：  
+    巨型帧互ping测试：  
     # [root@localhost ~]# ping -s 9000 x.x.x.x  
-6）直通13vf查询测试：  
+    6）直通13vf查询测试：  
     # virsh create qemu-test4-13VF.xml  
     在主机ip link show与虚拟机里ip link show对比mac地址是否一致。  
 
