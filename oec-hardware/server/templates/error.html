@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  {% extends 'base.html' %}
+
+  {% block title %}
+    oec-hardware - {{ error }}
+  {% endblock %}
+  {% block page_content %}
+    <div class="page-header">
+      <h3>{{ error }}</h3>
+    </div>
+  {% endblock %}
+</html>

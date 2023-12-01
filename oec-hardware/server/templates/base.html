@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  {% include 'flash.html' %}
+  <link rel="shortcut icon" href="{{ url_for('static', filename = 'favicon.ico') }}" type="image/x-icon" />
+  <link rel="icon" href="{{ url_for('static', filename = 'favicon.ico') }}" type="image/x-icon" />
+  <link rel="stylesheet" href="{{ url_for('static', filename = 'style.css') }}" type="text/css" />
+
+  <head>
+    <meta charset="UTF-8" />
+    <div class="page-header">
+      <h1>
+        <img src="{{ url_for('static', filename = 'favicon.ico') }}" />
+        openEuler Hardware Compatibility Test
+      </h1>
+    </div>
+    <div class="topnav topnav-inverse" role="navigation">
+      <div class="container">
+        <div class="topnav-menu">
+          <a class="topnav-brand" href="/">Main</a>
+          <a class="topnav-brand" href="/results">Results</a>
+        </div>
+      </div>
+    </div>
+  </head>
+
+  <body>
+    <div class="container">
+      {% block page_content %}
+
+      {% endblock %}
+    </div>
+  </body>
+</html>
