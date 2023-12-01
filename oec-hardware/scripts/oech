@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+# coding: utf-8
+
+# Copyright (c) 2020-2022 Huawei Technologies Co., Ltd.
+# oec-hardware is licensed under the Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#     http://license.coscl.org.cn/MulanPSL2
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
+# PURPOSE.
+# See the Mulan PSL v2 for more details.
+# Create: 2020-04-01
+# Desc: Operation of client
+
+import os
+import sys
+import fcntl
+import argparse
+import configparser
+
+sys.path.append("/usr/share/oech/lib/")
+os.putenv("PYTHONPATH", "/usr/share/oech/lib/")
+
+from hwcompatible.common import recovery_pci
+from hwcompatible.env import CertEnv
+from hwcompatible.log import Logger
+from hwcompatible.compatibility import EulerCertification
+
+class CertLock:
+    """
+    Create certlock
+    """
+
+    def __init__(self, filename):
+        self.filename = filename
+        self.fd_obj = open(filename, 'w')
+
+    def acquire(self):
+        """
+        acquire
+        """
+        try:
+            fcntl.flock(self.fd_obj, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return True
+        except IOError:
+            return False
+
+    def release(self):
+        """
+        release
+        """
+        fcntl.flock(self.fd_obj, fcntl.LOCK_UN)
+
+    def __del__(self):
+        self.fd_obj.close()
+
+
+if __name__ == '__main__':
+    if os.getuid() > 0:
+        sys.stderr.write("You need to be root to run this program.\n")
+        sys.exit(1)
+
+    parser = argparse.ArgumentParser(
+        description="Run openEuler Hardware Compatibility Test Suite")
+    parser.add_argument('--clean', action='store_true',
+                        help='Clean saved testsuite.')
+    parser.add_argument('--rebootup', action='store_true',
+                        help='Continue run testsuite after reboot system.')
+    parser.add_argument('--version', action='store_true',
+                        help='Show testsuite version.')
+    args = parser.parse_args()
+    config = configparser.ConfigParser()
+    config.read(CertEnv.versionfile)
+    name = config.get("NAME", "client_name")
+    version = config.get("VERSION", "version")
+
+    lock = CertLock("/var/lock/oech.lock")
+    if not lock.acquire():
+        sys.stderr.write(
+            "The oech may be running already, you should not run it repeated.\n")
+        sys.exit(1)
+
+    logger = Logger("oech.log", CertEnv.datadirectory, sys.stdout, sys.stderr)
+    logger.start()
+    cert = EulerCertification(logger)
+    if args.clean:
+        if not cert.clean():
+            lock.release()
+            sys.exit(1)
+    elif args.rebootup:
+        if not cert.run_rebootup():
+            lock.release()
+            sys.exit(1)
+    elif args.version:
+        sys.stdout.write("%s %s \n" % (name, version))
+    else:
+        recovery_pci()
+        if not cert.run():
+            lock.release()
+            logger.stop()
+            sys.exit(1)
+    logger.stop()
+    lock.release()
+    sys.exit(0)
