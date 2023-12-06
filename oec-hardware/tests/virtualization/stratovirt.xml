@@ -8,7 +8,7 @@
         <kernel>/home/kvm/std-vmlinuxz</kernel>
         <cmdline>console=hvc0 root=/dev/vda reboot=k panic=1 rw</cmdline>
         <loader readonly='yes' type='pflash'>/usr/share/edk2/ovmf/OVMF_CODE.fd</loader>
-        <nvram>/usr/share/edk2/ovmf/OVMF_VARS_2.fd</nvram>
+        <nvram>/usr/share/edk2/ovmf/OVMF_VARS.fd</nvram>
     </os>
     <features>
         <acpi/>
